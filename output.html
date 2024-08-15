@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tour Guide Output</title>
+    <link rel="stylesheet" href="styles.css"> <!-- Link to the CSS file -->
+</head>
+<body>
+    <h1>Your Customized Tour Guide</h1>
+    <p>Based on your interests:</p>
+    <ul>
+        <li id="interest1"></li>
+        <li id="interest2"></li>
+    </ul>
+    <p id="guideOutput">Your guide is being prepared...</p>
+</body>
+<script>
+    // Get URL parameters
+    const urlParams = new URLSearchParams(window.location.search);
+    document.getElementById('interest1').textContent = urlParams.get('interest1');
+    document.getElementById('interest2').textContent = urlParams.get('interest2');
+
+    // Simulate fetching data from an API
+    function getTourGuideData() {
+        return new Promise((resolve) => {
+            setTimeout(() => {
+                resolve("This is your customized tour guide content based on your interests!");
+            }, 1000); // Simulated delay for fetching data
+        });
+    }
+
+    // Use the simulated API call to update the guide output
+    getTourGuideData().then(data => {
+        document.getElementById('guideOutput').textContent = data;
+    });
+</script>
+</html>
