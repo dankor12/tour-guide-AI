@@ -1,4 +1,3 @@
-<!DOCTYPE html>
 <html lang="en">
 <head>
     <meta charset="UTF-8">
@@ -18,21 +17,70 @@
 <script>
     // Get URL parameters
     const urlParams = new URLSearchParams(window.location.search);
-    document.getElementById('interest1').textContent = urlParams.get('interest1');
-    document.getElementById('interest2').textContent = urlParams.get('interest2');
+    const interest1 = urlParams.get('interest1');
+    const interest2 = urlParams.get('interest2');
 
-    // Simulate fetching data from an API
-    function getTourGuideData() {
-        return new Promise((resolve) => {
-            setTimeout(() => {
-                resolve("This is your customized tour guide content based on your interests!");
-            }, 1000); // Simulated delay for fetching data
+
+    document.getElementById('interest1').textContent = interest1;
+    document.getElementById('interest2').textContent = interest2;
+
+
+    // Function to fetch data from the Flask backend
+    function getTourGuideData(location) {
+        return fetch('http://127.0.0.1:5000/generate-guide', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify({
+                location: location,
+                interests: [interest1, interest2] // Include interests in the request
+            })
+        })
+        .then(response => response.json())
+        .then(data => {
+            if (data.error) {
+                throw new Error(data.error);
+            }
+            return data.guide;
         });
     }
 
-    // Use the simulated API call to update the guide output
-    getTourGuideData().then(data => {
-        document.getElementById('guideOutput').textContent = data;
-    });
+
+    // Request user's location
+    if (navigator.geolocation) {
+        navigator.geolocation.getCurrentPosition(position => {
+            const userLocation = {
+                lat: position.coords.latitude,
+                lon: position.coords.longitude
+            };
+
+
+            // Use the backend API call to update the guide output
+            getTourGuideData(userLocation)
+                .then(data => {
+                    // Example: Assuming 'data' is a plain text, convert it to HTML-friendly format
+                    const formattedData = data
+                        .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>') // Convert Markdown-style bold to HTML bold
+                        .replace(/---/g, '<hr>')                         // Replace '---' with horizontal rule
+                        .replace(/### (.*?)\n/g, '<h2>$1</h2>')          // Convert Markdown-style headers to HTML headers
+                        .replace(/\n/g, '<br>');                         // Convert newlines to <br> for line breaks
+
+
+                    document.getElementById('guideOutput').innerHTML = formattedData;
+                })
+                .catch(error => {
+                    document.getElementById('guideOutput').textContent = `Error: ${error.message || "An unexpected error occurred while fetching the tour guide."}`;
+                });
+
+
+        }, error => {
+            console.error("Geolocation error:", error);
+            document.getElementById('guideOutput').textContent = "Could not retrieve your location. Please allow location access or try again.";
+        });
+    } else {
+        console.error("Geolocation not supported.");
+        document.getElementById('guideOutput').textContent = "Geolocation is not supported by your browser.";
+    }
 </script>
 </html>
