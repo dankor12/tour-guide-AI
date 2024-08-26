@@ -1,1 +1,1 @@
-web: python ai-tour-guide-backend/app.py
+web: gunicorn ai-tour-guide-backend.app:app
